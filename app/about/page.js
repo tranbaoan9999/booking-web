@@ -4,13 +4,13 @@ export default function About() {
   const teamMembers = [
     {
       id: 1,
-      name: 'Sarah Johnson',
+      name: 'Mr An Tran',
       role: 'Property Manager',
       description: 'Ensuring your stay is comfortable and hassle-free.'
     },
     {
       id: 2,
-      name: 'Michael Chen',
+      name: 'Ms Trang Do',
       role: 'Facilities Coordinator',
       description: 'Maintaining all amenities to the highest standards.'
     },

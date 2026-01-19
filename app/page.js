@@ -79,44 +79,139 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Stats Section */}
+      <section className={styles.stats}>
+        <div className={styles.statsContainer}>
+          <div className={styles.statsGrid}>
+            <div className={styles.statItem}>
+              <div className={styles.statNumber}>500+</div>
+              <div className={styles.statLabel}>Happy Guests</div>
+            </div>
+            <div className={styles.statItem}>
+              <div className={styles.statNumber}>4.9</div>
+              <div className={styles.statLabel}>Average Rating</div>
+            </div>
+            <div className={styles.statItem}>
+              <div className={styles.statNumber}>15+</div>
+              <div className={styles.statLabel}>Premium Rooms</div>
+            </div>
+            <div className={styles.statItem}>
+              <div className={styles.statNumber}>24/7</div>
+              <div className={styles.statLabel}>Guest Support</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className={styles.gallery}>
         <div className={styles.galleryContainer}>
+          {/* Section Header */}
           <div className={styles.galleryHeader}>
-            <h2 className={styles.sectionTitle}>Experience SakuraMura</h2>
-            <p className={styles.gallerySubtitle}>
-              Discover the beauty and comfort of our space through these moments
+            <h2 className={styles.galleryTitle}>Experience SakuraMura</h2>
+            <p className={styles.galleryDescription}>
+              Immerse yourself in the tranquil beauty of our space. Each moment captured here tells a story of comfort, elegance, and the serene lifestyle that awaits you.
             </p>
           </div>
 
-          <div className={styles.masonryGrid}>
+          {/* Image Grid */}
+          <div className={styles.imageGrid}>
             {allGalleryImages.slice(0, visibleImages).map((image, index) => (
-              <div
+              <article
                 key={index}
-                className={`${styles.masonryItem} ${index % 7 === 0 || index % 7 === 4 ? styles.tall : ''}`}
+                className={styles.imageCard}
               >
-                <div className={styles.imageWrapper}>
+                <div className={styles.imageContainer}>
                   <Image
                     src={image.src}
                     alt={image.alt}
                     width={600}
                     height={400}
-                    className={styles.galleryImage}
+                    className={styles.image}
                   />
-                  <div className={styles.imageOverlay}>
-                    <span className={styles.imageAlt}>{image.alt}</span>
-                  </div>
                 </div>
-              </div>
+                <div className={styles.imageCaption}>
+                  <p>{image.alt}</p>
+                </div>
+              </article>
             ))}
           </div>
 
+          {/* Load More Button */}
           {visibleImages < allGalleryImages.length && (
-            <div className={styles.loadMoreContainer}>
-              <button onClick={loadMore} className={styles.loadMoreButton}>
-                View More
+            <div className={styles.loadMoreWrapper}>
+              <button onClick={loadMore} className={styles.loadMoreBtn}>
+                <span>Load More Images</span>
+                <svg className={styles.btnIcon} width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M10 4V16M10 16L6 12M10 16L14 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </button>
+              <p className={styles.loadMoreText}>
+                Showing {visibleImages} of {allGalleryImages.length} images
+              </p>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className={styles.testimonials}>
+        <div className={styles.testimonialsContainer}>
+          <div className={styles.testimonialsHeader}>
+            <h2 className={styles.testimonialsTitle}>What Our Guests Say</h2>
+            <p className={styles.testimonialsSubtitle}>
+              Real experiences from people who stayed with us
+            </p>
+          </div>
+
+          <div className={styles.testimonialsGrid}>
+            <article className={styles.testimonialCard}>
+              <div className={styles.testimonialRating}>
+                <span>⭐⭐⭐⭐⭐</span>
+              </div>
+              <p className={styles.testimonialText}>
+                "An absolutely wonderful stay! The rooms are beautifully decorated, spotlessly clean, and the garden area is so peaceful. Felt like a home away from home."
+              </p>
+              <div className={styles.testimonialAuthor}>
+                <div className={styles.authorAvatar}>SK</div>
+                <div className={styles.authorInfo}>
+                  <div className={styles.authorName}>Sarah Kim</div>
+                  <div className={styles.authorLocation}>Seoul, Korea</div>
+                </div>
+              </div>
+            </article>
+
+            <article className={styles.testimonialCard}>
+              <div className={styles.testimonialRating}>
+                <span>⭐⭐⭐⭐⭐</span>
+              </div>
+              <p className={styles.testimonialText}>
+                "The location is perfect, the amenities are top-notch, and the staff is incredibly friendly. The breakfast by the pond was a highlight of my trip!"
+              </p>
+              <div className={styles.testimonialAuthor}>
+                <div className={styles.authorAvatar}>MT</div>
+                <div className={styles.authorInfo}>
+                  <div className={styles.authorName}>Michael Thompson</div>
+                  <div className={styles.authorLocation}>London, UK</div>
+                </div>
+              </div>
+            </article>
+
+            <article className={styles.testimonialCard}>
+              <div className={styles.testimonialRating}>
+                <span>⭐⭐⭐⭐⭐</span>
+              </div>
+              <p className={styles.testimonialText}>
+                "I stayed here for a month and it exceeded all expectations. Fast WiFi, comfortable workspace, and the serene environment made it perfect for remote work."
+              </p>
+              <div className={styles.testimonialAuthor}>
+                <div className={styles.authorAvatar}>YT</div>
+                <div className={styles.authorInfo}>
+                  <div className={styles.authorName}>Yuki Tanaka</div>
+                  <div className={styles.authorLocation}>Tokyo, Japan</div>
+                </div>
+              </div>
+            </article>
+          </div>
         </div>
       </section>
 
