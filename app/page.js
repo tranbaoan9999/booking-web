@@ -79,30 +79,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className={styles.stats}>
-        <div className={styles.statsContainer}>
-          <div className={styles.statsGrid}>
-            <div className={styles.statItem}>
-              <div className={styles.statNumber}>500+</div>
-              <div className={styles.statLabel}>Happy Guests</div>
-            </div>
-            <div className={styles.statItem}>
-              <div className={styles.statNumber}>4.9</div>
-              <div className={styles.statLabel}>Average Rating</div>
-            </div>
-            <div className={styles.statItem}>
-              <div className={styles.statNumber}>15+</div>
-              <div className={styles.statLabel}>Premium Rooms</div>
-            </div>
-            <div className={styles.statItem}>
-              <div className={styles.statNumber}>24/7</div>
-              <div className={styles.statLabel}>Guest Support</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section className={styles.gallery}>
         <div className={styles.galleryContainer}>
           {/* Section Header */}
