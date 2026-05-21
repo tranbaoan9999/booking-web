@@ -1,53 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './rooms.module.css';
 import Link from 'next/link';
 import Image from 'next/image';
+import { roomsService } from '@/services/rooms.service';
 
 export default function Rooms() {
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
+  const [rooms, setRooms] = useState([]);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-
-  const rooms = [
-    {
-      id: 1,
-      name: 'Deluxe Single Room',
-      price: '18$/day',
-      features: ['Free WiFi', 'Air Conditioning', 'Private Bathroom', 'Desk & Chair'],
-      description: 'Perfect for solo travelers or students. Comfortable and well-equipped.',
-      image: '/img/interior-garden.jpg',
-    },
-    {
-      id: 2,
-      name: 'Standard Double Room',
-      price: '18$/day',
-      features: ['Free WiFi', 'Air Conditioning', 'Shared Bathroom', '2 Single Beds'],
-      description: 'Ideal for friends or colleagues. Spacious and affordable.',
-      image: '/img/garden-courtyard.jpg',
-    },
-    {
-      id: 3,
-      name: 'Master Room',
-      price: '20$/day',
-      features: ['Free WiFi', 'Air Conditioning', 'Private Bathroom', 'Kitchen', 'Living Area'],
-      description: 'Our most luxurious option with all the amenities you need.',
-      image: '/img/dining-feast.jpg',
-    },
-  ];
-
-  const calculateNights = () => {
-    if (checkIn && checkOut) {
-      const start = new Date(checkIn);
-      const end = new Date(checkOut);
-      const nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-      return nights > 0 ? nights : 0;
-    }
-    return 0;
-  };
 
   const checkAvailability = async () => {
     if (!checkIn || !checkOut) {
@@ -55,125 +20,207 @@ export default function Rooms() {
       return;
     }
 
-    if (calculateNights() <= 0) {
-      alert('Check-out date must be after check-in date');
-      return;
-    }
-
-    setIsCheckingAvailability(true);
-    setHasSearched(false);
-
-    // TODO: Replace with actual API call
-    // Simulating API call to check room availability
-    setTimeout(() => {
-      // Placeholder: Randomly mark some rooms as available
-      const available = rooms.map(room => ({
-        ...room,
-        isAvailable: Math.random() > 0.3 // 70% chance available
-      }));
-      setAvailableRooms(available);
+    try {
+      setIsCheckingAvailability(true);
+      setHasSearched(false);
+      const roomsAvailable = await roomsService.getAvailableRooms(checkIn, checkOut, 1);
+      setAvailableRooms(roomsAvailable.data);
       setIsCheckingAvailability(false);
       setHasSearched(true);
-
-      // Store dates in localStorage for booking page
-      localStorage.setItem('selectedDates', JSON.stringify({ checkIn, checkOut }));
-    }, 1000);
+    } catch (error) {
+      console.error('Error checking availability:', error);
+      setIsCheckingAvailability(false);
+    }
   };
 
   const handleBookNow = (roomId) => {
     localStorage.setItem('selectedDates', JSON.stringify({ checkIn, checkOut }));
   };
 
-  const displayRooms = hasSearched ? availableRooms : rooms;
+  const displayRooms = availableRooms;
 
   return (
     <div className={styles.container}>
+      {/* HEADER */}
       <div className={styles.header}>
         <h1>Our Rooms</h1>
-        <p>Find the perfect room that suits your needs and budget</p>
+        <p>Choose your stay and check room availability instantly</p>
       </div>
 
+      {/* SEARCH SECTION */}
       <div className={styles.searchWidget}>
         <h2>Check Availability</h2>
+
         <div className={styles.searchForm}>
           <div className={styles.dateInputs}>
+            {/* CHECK IN */}
             <div className={styles.inputGroup}>
-              <label htmlFor="checkIn">Check-in</label>
+              <label htmlFor="checkIn">Check-in Date</label>
+
               <input
                 type="date"
                 id="checkIn"
                 value={checkIn}
-                onChange={(e) => setCheckIn(e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
+                onChange={(e) => setCheckIn(e.target.value)}
               />
             </div>
 
+            {/* CHECK OUT */}
             <div className={styles.inputGroup}>
-              <label htmlFor="checkOut">Check-out</label>
+              <label htmlFor="checkOut">Check-out Date</label>
+
               <input
                 type="date"
                 id="checkOut"
                 value={checkOut}
-                onChange={(e) => setCheckOut(e.target.value)}
                 min={checkIn || new Date().toISOString().split('T')[0]}
+                onChange={(e) => setCheckOut(e.target.value)}
               />
             </div>
-
-            {calculateNights() > 0 && (
-              <div className={styles.nightsInfo}>
-                <span>{calculateNights()} night{calculateNights() !== 1 ? 's' : ''}</span>
-              </div>
-            )}
           </div>
 
+          {/* SEARCH BUTTON */}
           <button
-            onClick={checkAvailability}
             className={styles.searchButton}
-            disabled={isCheckingAvailability}
+            onClick={checkAvailability}
+            disabled={
+              isCheckingAvailability ||
+              !checkIn ||
+              !checkOut
+            }
           >
-            {isCheckingAvailability ? 'Searching...' : 'Search Available Rooms'}
+            {isCheckingAvailability
+              ? 'Searching...'
+              : 'Search Available Rooms'}
           </button>
         </div>
       </div>
 
+      {/* RESULT INFO */}
+      {hasSearched && (
+        <div className={styles.resultInfo}>
+          <h3>
+            {displayRooms.length} room
+            {displayRooms.length !== 1 ? 's' : ''} found
+          </h3>
+
+          <p>
+            {checkIn} → {checkOut}
+          </p>
+        </div>
+      )}
+
+      {/* ROOMS GRID */}
       <div className={styles.roomsGrid}>
-        {displayRooms.map((room) => (
-          <div key={room.id} className={styles.roomCard}>
-            {hasSearched && !room.isAvailable && (
-              <div className={styles.unavailableBadge}>Not Available</div>
-            )}
-            {hasSearched && room.isAvailable && (
-              <div className={styles.availableBadge}>Available</div>
-            )}
-            <div className={styles.roomImage}>
-              <Image
-                src={room.image}
-                alt={room.name}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                style={{ objectFit: 'cover' }}
-                priority={room.id === 1}
-              />
-            </div>
-            <div className={styles.roomContent}>
-              <h3>{room.name}</h3>
-              <p className={styles.price}>{room.price}</p>
-              <p className={styles.description}>{room.description}</p>
-              <ul className={styles.features}>
-                {room.features.map((feature, index) => (
-                  <li key={index}>{feature}</li>
-                ))}
-              </ul>
-              {(!hasSearched || room.isAvailable) ? (
-                <Link href={`/rooms/${room.id}`} onClick={() => handleBookNow(room.id)}>
-                  <button className={styles.bookButton}>Book Now</button>
-                </Link>
-              ) : (
-                <button className={styles.bookButton} disabled>Unavailable</button>
-              )}
-            </div>
+        {displayRooms.length === 0 ? (
+          <div className={styles.emptyState}>
+            <h3>No rooms available</h3>
+            <p>Please try another date range.</p>
           </div>
-        ))}
+        ) : (
+          displayRooms.map((room) => {
+            const isAvailable =
+              room.status === 'AVAILABLE';
+
+            return (
+              <div
+                key={room.id}
+                className={`${styles.roomCard} ${!isAvailable
+                    ? styles.roomUnavailable
+                    : ''
+                  }`}
+              >
+                {/* STATUS BADGE */}
+                <div
+                  className={
+                    isAvailable
+                      ? styles.availableBadge
+                      : styles.unavailableBadge
+                  }
+                >
+                  {isAvailable
+                    ? 'Available'
+                    : room.status}
+                </div>
+
+                {/* ROOM IMAGE */}
+                <div className={styles.roomImage}>
+                  <Image
+                    src={`/images/${room.roomType.name.toLowerCase()}.jpg`}
+                    alt={room.roomType.name}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                  />
+                </div>
+
+                {/* ROOM CONTENT */}
+                <div className={styles.roomContent}>
+                  {/* HEADER */}
+                  <div className={styles.roomHeader}>
+                    <div>
+                      <h3>
+                        {room.roomType.name} Room
+                      </h3>
+
+                      <p className={styles.roomNumber}>
+                        Room #{room.roomNumber}
+                      </p>
+                    </div>
+
+                    <div className={styles.priceBox}>
+                      <span className={styles.price}>
+                        ${room.roomType.price}
+                      </span>
+
+                      <small>/night</small>
+                    </div>
+                  </div>
+
+                  {/* CAPACITY */}
+                  <div className={styles.capacity}>
+                    👥 Max{' '}
+                    {room.roomType.maxCapacity} guests
+                  </div>
+
+                  {/* AMENITIES */}
+                  <ul className={styles.features}>
+                    {room.amenities.length > 0 ? (
+                      room.amenities.map(
+                        (item, index) => (
+                          <li key={index}>{item}</li>
+                        )
+                      )
+                    ) : (
+                      <li>Basic amenities included</li>
+                    )}
+                  </ul>
+
+                  {/* ACTION */}
+                  {isAvailable ? (
+                    <Link href={`/rooms/${room.id}`}>
+                      <button
+                        className={styles.bookButton}
+                        onClick={() =>
+                          handleBookNow(room.id)
+                        }
+                      >
+                        Book Now
+                      </button>
+                    </Link>
+                  ) : (
+                    <button
+                      className={styles.unavailableButton}
+                      disabled
+                    >
+                      Unavailable
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

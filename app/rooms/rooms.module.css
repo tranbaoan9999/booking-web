@@ -4,6 +4,8 @@
   padding: 4rem 2rem;
 }
 
+/* HEADER */
+
 .header {
   text-align: center;
   margin-bottom: 2rem;
@@ -19,6 +21,8 @@
   font-size: 1.2rem;
   color: #6c757d;
 }
+
+/* SEARCH */
 
 .searchWidget {
   background: white;
@@ -62,7 +66,7 @@
   font-size: 0.95rem;
 }
 
-.inputGroup input[type="date"] {
+.inputGroup input[type='date'] {
   padding: 0.75rem 1rem;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
@@ -70,7 +74,7 @@
   transition: all 0.3s ease;
 }
 
-.inputGroup input[type="date"]:focus {
+.inputGroup input[type='date']:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -81,7 +85,9 @@
   align-items: center;
   justify-content: center;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  background: linear-gradient(135deg,
+      rgba(102, 126, 234, 0.1) 0%,
+      rgba(118, 75, 162, 0.1) 100%);
   border-radius: 8px;
   align-self: end;
 }
@@ -94,7 +100,9 @@
 
 .searchButton {
   padding: 1rem 3rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg,
+      #667eea 0%,
+      #764ba2 100%);
   color: white;
   border: none;
   border-radius: 10px;
@@ -115,17 +123,37 @@
   cursor: not-allowed;
 }
 
+/* RESULT INFO */
+
+.resultInfo {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+}
+
+.resultInfo h3 {
+  color: #2c3e50;
+}
+
+.resultInfo p {
+  color: #6c757d;
+}
+
+/* ROOMS GRID */
+
 .roomsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill,
+      minmax(350px, 1fr));
   gap: 2rem;
 }
 
-.roomCardLink {
-  text-decoration: none;
-  color: inherit;
-  display: block;
-}
+/* ROOM CARD */
 
 .roomCard {
   background: white;
@@ -142,6 +170,16 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
+.roomUnavailable {
+  opacity: 0.75;
+}
+
+.roomUnavailable .roomImage img {
+  filter: grayscale(50%);
+}
+
+/* BADGES */
+
 .availableBadge,
 .unavailableBadge {
   position: absolute;
@@ -155,28 +193,35 @@
   animation: fadeIn 0.5s ease-out;
 }
 
+.availableBadge {
+  background: linear-gradient(135deg,
+      #28a745 0%,
+      #20c997 100%);
+  color: white;
+  box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+}
+
+.unavailableBadge {
+  background: linear-gradient(135deg,
+      #dc3545 0%,
+      #ff5722 100%);
+  color: white;
+  box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
     transform: scale(0.8);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
   }
 }
 
-.availableBadge {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  color: white;
-  box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
-}
-
-.unavailableBadge {
-  background: linear-gradient(135deg, #dc3545 0%, #ff5722 100%);
-  color: white;
-  box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
-}
+/* IMAGE */
 
 .roomImage {
   position: relative;
@@ -193,8 +238,18 @@
   transform: scale(1.05);
 }
 
+/* CONTENT */
+
 .roomContent {
   padding: 1.5rem;
+}
+
+.roomHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .roomContent h3 {
@@ -203,18 +258,39 @@
   margin-bottom: 0.5rem;
 }
 
-.price {
-  font-size: 1.3rem;
-  color: #667eea;
-  font-weight: 700;
-  margin-bottom: 1rem;
+.roomNumber {
+  color: #6c757d;
+  font-size: 0.95rem;
 }
 
-.description {
-  color: #6c757d;
-  line-height: 1.6;
-  margin-bottom: 1rem;
+.priceBox {
+  text-align: right;
 }
+
+.price {
+  font-size: 1.4rem;
+  color: #667eea;
+  font-weight: 700;
+}
+
+.priceBox small {
+  display: block;
+  color: #6c757d;
+  margin-top: 0.2rem;
+}
+
+/* CAPACITY */
+
+.capacity {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  color: #495057;
+  font-weight: 500;
+}
+
+/* FEATURES */
 
 .features {
   list-style: none;
@@ -230,7 +306,7 @@
   align-items: center;
 }
 
-.features li:before {
+.features li::before {
   content: '✓';
   color: #667eea;
   font-weight: bold;
@@ -241,15 +317,23 @@
   border-bottom: none;
 }
 
-.bookButton {
+/* BUTTONS */
+
+.bookButton,
+.unavailableButton {
   width: 100%;
   padding: 0.8rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
+}
+
+.bookButton {
+  background: linear-gradient(135deg,
+      #667eea 0%,
+      #764ba2 100%);
+  color: white;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -259,11 +343,54 @@
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-.bookButton:disabled {
-  opacity: 0.5;
+.unavailableButton {
+  background: #adb5bd;
+  color: white;
   cursor: not-allowed;
-  background: #6c757d;
 }
+
+/* EMPTY STATE */
+
+.emptyState {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg,
+      #ffffff 0%,
+      #f8f9ff 100%);
+  border-radius: 24px;
+  padding: 5rem 2rem;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  border: 1px solid #edf0ff;
+}
+
+.emptyIcon {
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 1.5rem;
+  border-radius: 50%;
+  background: rgba(102, 126, 234, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+}
+
+.emptyState h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.emptyState p {
+  max-width: 500px;
+  margin: 0 auto;
+  color: #6c757d;
+  line-height: 1.7;
+  font-size: 1.05rem;
+}
+
+/* RESPONSIVE */
 
 @media (max-width: 768px) {
   .container {
@@ -301,5 +428,27 @@
 
   .roomsGrid {
     grid-template-columns: 1fr;
+  }
+
+  .roomHeader {
+    flex-direction: column;
+  }
+
+  .priceBox {
+    text-align: left;
+  }
+
+  .emptyState {
+    padding: 3rem 1.5rem;
+  }
+
+  .emptyState h3 {
+    font-size: 1.5rem;
+  }
+
+  .emptyIcon {
+    width: 70px;
+    height: 70px;
+    font-size: 2rem;
   }
 }
