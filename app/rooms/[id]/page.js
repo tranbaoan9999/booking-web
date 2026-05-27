@@ -1,79 +1,58 @@
-'use client'
+'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import styles from './roomDetails.module.css';
-import React from "react";
-
-
-const roomsData = [
-  {
-    id: 1,
-    name: 'Deluxe Single Room',
-    price: '18$/day',
-    features: ['Free WiFi', 'Air Conditioning', 'Private Bathroom', 'Desk & Chair'],
-    description: 'Perfect for solo travelers or students. Comfortable and well-equipped.',
-    longDescription: 'Our Deluxe Single Room offers the perfect blend of comfort and functionality for solo travelers. Featuring a cozy single bed with premium linens, a dedicated workspace, and modern amenities, this room provides everything you need for a productive and relaxing stay. The private bathroom includes fresh towels and complimentary toiletries.',
-    image: '/img/interior-garden.jpg',
-    gallery: [
-      '/img/interior-garden.jpg',
-      '/img/lobby-guests.jpg',
-      '/img/garden-reading.jpg',
-      '/img/evening-terrace.jpg',
-      '/img/garden-breakfast.jpg',
-      '/img/garden-view.jpg'
-    ]
-  },
-  {
-    id: 2,
-    name: 'Standard Double Room',
-    price: '18$/day',
-    features: ['Free WiFi', 'Air Conditioning', 'Shared Bathroom', '2 Single Beds'],
-    description: 'Ideal for friends or colleagues. Spacious and affordable.',
-    longDescription: 'The Standard Double Room is designed for two guests who value both privacy and affordability. With two comfortable single beds, ample storage space, and a shared bathroom that is well-maintained and regularly cleaned, this room offers excellent value. The room includes all essential amenities and provides a welcoming atmosphere for your stay.',
-    image: '/img/garden-courtyard.jpg',
-    gallery: [
-      '/img/garden-courtyard.jpg',
-      '/img/indoor-dining.jpg',
-      '/img/evening-pond.jpg',
-      '/img/couple-bench.jpg',
-      '/img/breakfast-pond.jpg',
-      '/img/outdoor-gathering.jpg'
-    ]
-  },
-  {
-    id: 3,
-    name: 'Master Room',
-    price: '20$/day',
-    features: ['Free WiFi', 'Air Conditioning', 'Private Bathroom', 'Kitchen', 'Living Area'],
-    description: 'Our most luxurious option with all the amenities you need.',
-    longDescription: 'Experience the ultimate in comfort with our Master Room. This spacious accommodation features a separate living area perfect for relaxation or entertaining, a fully-equipped kitchenette for your convenience, and a luxurious private bathroom. The room is thoughtfully designed with premium furnishings and decor, making it ideal for extended stays or those seeking extra space and privacy.',
-    image: '/img/dining-feast.jpg',
-    gallery: [
-      '/img/dining-feast.jpg',
-      '/img/colorful-feast.jpg',
-      '/img/outdoor-feast.jpg',
-      '/img/dining-group.jpg',
-      '/img/garden-breakfast.jpg',
-      '/img/evening-terrace.jpg',
-      '/img/garden-view.jpg'
-    ]
-  },
-];
+import React from 'react';
+import { roomsService } from '@/services/rooms.service';
 
 export default function RoomDetails({ params }) {
-  const [selectedImage, setSelectedImage] = useState(0);
   const data = React.use(params);
 
+  const [room, setRoom] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   const roomId = parseInt(data.id);
-  const room = roomsData.find(r => r.id === roomId);
+
+  const getRoomDetail = async (id) => {
+    try {
+      const response = await roomsService.getRoomByID(id);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching room details:', error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const fetchRoom = async () => {
+      setLoading(true);
+
+      const roomData = await getRoomDetail(roomId);
+
+      setRoom(roomData);
+      setLoading(false);
+    };
+
+    fetchRoom();
+  }, [roomId]);
+
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loading}>
+          <h1>Loading...</h1>
+        </div>
+      </div>
+    );
+  }
 
   if (!room) {
     return (
       <div className={styles.container}>
         <div className={styles.notFound}>
           <h1>Room Not Found</h1>
+
           <Link href="/rooms" className={styles.backButton}>
             Back to Rooms
           </Link>
@@ -90,57 +69,74 @@ export default function RoomDetails({ params }) {
 
       <div className={styles.roomHeader}>
         <div className={styles.headerContent}>
-          <h1>{room.name}</h1>
-          <p className={styles.price}>{room.price}</p>
-        </div>
-      </div>
+          <h1>Room {room.roomNumber}</h1>
 
-      <div className={styles.gallerySection}>
-        <div className={styles.mainImage}>
-          <Image
-            src={room.gallery[selectedImage]}
-            alt={`${room.name} - Image ${selectedImage + 1}`}
-            fill
-            sizes="(max-width: 768px) 100vw, 70vw"
-            style={{ objectFit: 'cover' }}
-            priority
-          />
+          <p className={styles.price}>
+            ${room.roomType.price} / night
+          </p>
         </div>
 
-        <div className={styles.thumbnailGrid}>
-          {room.gallery.map((img, index) => (
-            <div
-              key={index}
-              className={`${styles.thumbnail} ${selectedImage === index ? styles.activeThumbnail : ''}`}
-              onClick={() => setSelectedImage(index)}
-            >
-              <Image
-                src={img}
-                alt={`Thumbnail ${index + 1}`}
-                fill
-                sizes="150px"
-                style={{ objectFit: 'cover' }}
-              />
-            </div>
-          ))}
+        <div
+          className={`${styles.status} ${room.status === 'AVAILABLE'
+              ? styles.available
+              : styles.unavailable
+            }`}
+        >
+          {room.status}
         </div>
       </div>
 
       <div className={styles.detailsSection}>
         <div className={styles.descriptionCard}>
-          <h2>About This Room</h2>
-          <p>{room.longDescription}</p>
+          <h2>Room Information</h2>
+
+          <div className={styles.infoGroup}>
+            <div className={styles.infoItem}>
+              <span className={styles.label}>Room Number</span>
+              <span>{room.roomNumber}</span>
+            </div>
+
+            <div className={styles.infoItem}>
+              <span className={styles.label}>Room Type</span>
+              <span>{room.roomType.name}</span>
+            </div>
+
+            <div className={styles.infoItem}>
+              <span className={styles.label}>Max Capacity</span>
+              <span>{room.roomType.maxCapacity} Guests</span>
+            </div>
+
+            <div className={styles.infoItem}>
+              <span className={styles.label}>Status</span>
+              <span>{room.status}</span>
+            </div>
+          </div>
         </div>
 
         <div className={styles.featuresCard}>
-          <h2>Room Features</h2>
-          <ul className={styles.featuresList}>
-            {room.features.map((feature, index) => (
-              <li key={index}>{feature}</li>
-            ))}
-          </ul>
+          <h2>Amenities</h2>
+
+          {room.amenities.length > 0 ? (
+            <ul className={styles.featuresList}>
+              {room.amenities.map((amenity) => (
+                <li key={amenity.id}>{amenity.name}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles.noAmenities}>
+              No amenities available
+            </p>
+          )}
+
           <Link href={`/booking/${room.id}`}>
-            <button className={styles.bookButton}>Book This Room</button>
+            <button
+              className={styles.bookButton}
+              disabled={room.status !== 'AVAILABLE'}
+            >
+              {room.status === 'AVAILABLE'
+                ? 'Book This Room'
+                : 'Room Unavailable'}
+            </button>
           </Link>
         </div>
       </div>
@@ -150,13 +146,15 @@ export default function RoomDetails({ params }) {
           <h3>Check-in</h3>
           <p>2:00 PM - 10:00 PM</p>
         </div>
+
         <div className={styles.infoCard}>
           <h3>Check-out</h3>
           <p>Before 11:00 AM</p>
         </div>
+
         <div className={styles.infoCard}>
-          <h3>Cancellation</h3>
-          <p>Free cancellation up to 24 hours before check-in</p>
+          <h3>Status</h3>
+          <p>{room.status}</p>
         </div>
       </div>
     </div>

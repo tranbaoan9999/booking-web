@@ -26,7 +26,7 @@ export default function Rooms() {
       const roomsAvailable = await roomsService.getAvailableRooms(checkIn, checkOut, 1);
       setAvailableRooms(roomsAvailable.data);
       setIsCheckingAvailability(false);
-      setHasSearched(true);
+      setHasSearched(true); 
     } catch (error) {
       console.error('Error checking availability:', error);
       setIsCheckingAvailability(false);

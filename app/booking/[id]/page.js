@@ -1,44 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './booking.module.css';
+import { roomsService } from '@/services/rooms.service';
 import React from 'react';
-
-const roomsData = [
-  {
-    id: 1,
-    name: 'Deluxe Single Room',
-    price: 18,
-    features: ['Free WiFi', 'Air Conditioning', 'Private Bathroom', 'Desk & Chair'],
-    description: 'Perfect for solo travelers or students. Comfortable and well-equipped.',
-    image: '/img/interior-garden.jpg',
-  },
-  {
-    id: 2,
-    name: 'Standard Double Room',
-    price: 18,
-    features: ['Free WiFi', 'Air Conditioning', 'Shared Bathroom', '2 Single Beds'],
-    description: 'Ideal for friends or colleagues. Spacious and affordable.',
-    image: '/img/garden-courtyard.jpg',
-  },
-  {
-    id: 3,
-    name: 'Master Room',
-    price: 20,
-    features: ['Free WiFi', 'Air Conditioning', 'Private Bathroom', 'Kitchen', 'Living Area'],
-    description: 'Our most luxurious option with all the amenities you need.',
-    image: '/img/dining-feast.jpg',
-  },
-];
 
 export default function BookingPage({ params }) {
   const router = useRouter();
   const data = React.use(params);
+
   const roomId = parseInt(data.id);
-  const room = roomsData.find(r => r.id === roomId);
+  console.log('BookingPage params:', params);
+
+  const [room, setRoom] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const [bookingData, setBookingData] = useState({
     checkIn: '',
@@ -49,57 +26,84 @@ export default function BookingPage({ params }) {
     guestPhone: '',
   });
 
+  const getRoomDetail = async (id) => {
+    try {
+      const response = await roomsService.getRoomByID(id);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching room details:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
-    // Retrieve selected dates from localStorage
+    const fetchRoom = async () => {
+      setLoading(true);
+
+      const roomData = await getRoomDetail(roomId);
+
+      setRoom(roomData);
+      setLoading(false);
+    };
+
+    fetchRoom();
+
     const storedDates = localStorage.getItem('selectedDates');
+
     if (storedDates) {
       const { checkIn, checkOut } = JSON.parse(storedDates);
-      setBookingData(prev => ({
+
+      setBookingData((prev) => ({
         ...prev,
         checkIn,
-        checkOut
+        checkOut,
       }));
     }
-  }, []);
-
-  if (!room) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.notFound}>
-          <h1>Room Not Found</h1>
-          <Link href="/rooms" className={styles.backButton}>
-            Back to Rooms
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  }, [roomId]);
 
   const calculateNights = () => {
     if (bookingData.checkIn && bookingData.checkOut) {
       const start = new Date(bookingData.checkIn);
       const end = new Date(bookingData.checkOut);
-      const nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+
+      const nights = Math.ceil(
+        (end - start) / (1000 * 60 * 60 * 24)
+      );
+
       return nights > 0 ? nights : 0;
     }
+
     return 0;
   };
 
   const calculateTotal = () => {
+    if (!room) return 0;
+
     const nights = calculateNights();
-    return nights * room.price * bookingData.numberOfRooms;
+
+    return (
+      nights *
+      room.roomType.price *
+      bookingData.numberOfRooms
+    );
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!bookingData.checkIn || !bookingData.checkOut || !bookingData.guestName || !bookingData.guestEmail || !bookingData.guestPhone) {
+    if (
+      !bookingData.checkIn ||
+      !bookingData.checkOut ||
+      !bookingData.guestName ||
+      !bookingData.guestEmail ||
+      !bookingData.guestPhone
+    ) {
       alert('Please fill in all required fields');
       return;
     }
 
     if (calculateNights() <= 0) {
-      alert('Please select valid check-in and check-out dates');
+      alert('Please select valid dates');
       return;
     }
 
@@ -110,27 +114,64 @@ export default function BookingPage({ params }) {
       total: calculateTotal(),
     };
 
-    localStorage.setItem('bookingInfo', JSON.stringify(bookingInfo));
+    localStorage.setItem(
+      'bookingInfo',
+      JSON.stringify(bookingInfo)
+    );
+
     router.push(`/booking/${roomId}/confirm`);
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setBookingData(prev => ({
+
+    setBookingData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loading}>
+          <h1>Loading...</h1>
+        </div>
+      </div>
+    );
+  }
+
+  if (!room) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.notFound}>
+          <h1>Room Not Found</h1>
+
+          <Link
+            href="/rooms"
+            className={styles.backButton}
+          >
+            Back to Rooms
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
-      <Link href={`/rooms/${roomId}`} className={styles.backLink}>
+      <Link
+        href={`/rooms/${roomId}`}
+        className={styles.backLink}
+      >
         ← Back to Room Details
       </Link>
 
       <div className={styles.header}>
         <h1>Complete Your Booking</h1>
-        <p>Fill in the details below to reserve your room</p>
+        <p>
+          Fill in the details below to reserve your room
+        </p>
       </div>
 
       <div className={styles.bookingLayout}>
@@ -138,8 +179,12 @@ export default function BookingPage({ params }) {
           <form onSubmit={handleSubmit}>
             <div className={styles.section}>
               <h2>Guest Information</h2>
+
               <div className={styles.formGroup}>
-                <label htmlFor="guestName">Full Name *</label>
+                <label htmlFor="guestName">
+                  Full Name *
+                </label>
+
                 <input
                   type="text"
                   id="guestName"
@@ -152,7 +197,10 @@ export default function BookingPage({ params }) {
               </div>
 
               <div className={styles.formGroup}>
-                <label htmlFor="guestEmail">Email Address *</label>
+                <label htmlFor="guestEmail">
+                  Email Address *
+                </label>
+
                 <input
                   type="email"
                   id="guestEmail"
@@ -165,7 +213,10 @@ export default function BookingPage({ params }) {
               </div>
 
               <div className={styles.formGroup}>
-                <label htmlFor="guestPhone">Phone Number *</label>
+                <label htmlFor="guestPhone">
+                  Phone Number *
+                </label>
+
                 <input
                   type="tel"
                   id="guestPhone"
@@ -180,29 +231,55 @@ export default function BookingPage({ params }) {
 
             <div className={styles.section}>
               <h2>Booking Details</h2>
+
               <div className={styles.dateDisplay}>
                 <div className={styles.dateInfo}>
-                  <span className={styles.dateLabel}>Check-in:</span>
+                  <span className={styles.dateLabel}>
+                    Check-in:
+                  </span>
+
                   <span className={styles.dateValue}>
-                    {bookingData.checkIn ? new Date(bookingData.checkIn).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not selected'}
+                    {bookingData.checkIn
+                      ? new Date(
+                        bookingData.checkIn
+                      ).toLocaleDateString()
+                      : 'Not selected'}
                   </span>
                 </div>
+
                 <div className={styles.dateInfo}>
-                  <span className={styles.dateLabel}>Check-out:</span>
+                  <span className={styles.dateLabel}>
+                    Check-out:
+                  </span>
+
                   <span className={styles.dateValue}>
-                    {bookingData.checkOut ? new Date(bookingData.checkOut).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not selected'}
+                    {bookingData.checkOut
+                      ? new Date(
+                        bookingData.checkOut
+                      ).toLocaleDateString()
+                      : 'Not selected'}
                   </span>
                 </div>
+
                 {calculateNights() > 0 && (
                   <div className={styles.dateInfo}>
-                    <span className={styles.dateLabel}>Duration:</span>
-                    <span className={styles.dateValue}>{calculateNights()} night{calculateNights() !== 1 ? 's' : ''}</span>
+                    <span className={styles.dateLabel}>
+                      Duration:
+                    </span>
+
+                    <span className={styles.dateValue}>
+                      {calculateNights()} night
+                      {calculateNights() > 1 ? 's' : ''}
+                    </span>
                   </div>
                 )}
               </div>
 
               <div className={styles.formGroup}>
-                <label htmlFor="numberOfRooms">Number of Rooms</label>
+                <label htmlFor="numberOfRooms">
+                  Number of Rooms
+                </label>
+
                 <select
                   id="numberOfRooms"
                   name="numberOfRooms"
@@ -218,7 +295,10 @@ export default function BookingPage({ params }) {
               </div>
             </div>
 
-            <button type="submit" className={styles.submitButton}>
+            <button
+              type="submit"
+              className={styles.submitButton}
+            >
               Proceed to Confirmation
             </button>
           </form>
@@ -226,49 +306,75 @@ export default function BookingPage({ params }) {
 
         <div className={styles.summarySection}>
           <div className={styles.roomCard}>
-            <div className={styles.roomImage}>
-              <Image
-                src={room.image}
-                alt={room.name}
-                fill
-                sizes="400px"
-                style={{ objectFit: 'cover' }}
-              />
-            </div>
             <div className={styles.roomInfo}>
-              <h3>{room.name}</h3>
-              <p className={styles.roomPrice}>${room.price}/night</p>
-              <p className={styles.roomDescription}>{room.description}</p>
+              <h3>
+                Room {room.roomNumber}
+              </h3>
+
+              <p className={styles.roomPrice}>
+                ${room.roomType.price}/night
+              </p>
+
+              <p className={styles.roomDescription}>
+                {room.roomType.name}
+              </p>
 
               <div className={styles.features}>
-                <h4>Features:</h4>
-                <ul>
-                  {room.features.slice(0, 4).map((feature, index) => (
-                    <li key={index}>{feature}</li>
-                  ))}
-                </ul>
+                <h4>Amenities</h4>
+
+                {room.amenities.length > 0 ? (
+                  <ul>
+                    {room.amenities.map((amenity) => (
+                      <li key={amenity.id}>
+                        {amenity.name}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No amenities available</p>
+                )}
               </div>
             </div>
           </div>
 
           <div className={styles.priceSummary}>
             <h3>Price Summary</h3>
+
             <div className={styles.summaryRow}>
               <span>Room Rate</span>
-              <span>${room.price}/night</span>
+
+              <span>
+                ${room.roomType.price}/night
+              </span>
             </div>
+
             <div className={styles.summaryRow}>
               <span>Number of Nights</span>
-              <span>{calculateNights()} night{calculateNights() !== 1 ? 's' : ''}</span>
+
+              <span>
+                {calculateNights()} night
+                {calculateNights() > 1 ? 's' : ''}
+              </span>
             </div>
+
             <div className={styles.summaryRow}>
               <span>Number of Rooms</span>
-              <span>{bookingData.numberOfRooms}</span>
+
+              <span>
+                {bookingData.numberOfRooms}
+              </span>
             </div>
+
             <div className={styles.divider}></div>
+
             <div className={styles.summaryRow}>
-              <span className={styles.totalLabel}>Total Amount</span>
-              <span className={styles.totalAmount}>${calculateTotal()}</span>
+              <span className={styles.totalLabel}>
+                Total Amount
+              </span>
+
+              <span className={styles.totalAmount}>
+                ${calculateTotal()}
+              </span>
             </div>
           </div>
         </div>
