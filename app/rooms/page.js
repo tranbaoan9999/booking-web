@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import styles from './rooms.module.css';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -9,7 +9,6 @@ import { roomsService } from '@/services/rooms.service';
 export default function Rooms() {
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
-  const [rooms, setRooms] = useState([]);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -23,18 +22,34 @@ export default function Rooms() {
     try {
       setIsCheckingAvailability(true);
       setHasSearched(false);
-      const roomsAvailable = await roomsService.getAvailableRooms(checkIn, checkOut, 1);
-      setAvailableRooms(roomsAvailable.data);
-      setIsCheckingAvailability(false);
-      setHasSearched(true); 
+
+      const roomsAvailable =
+        await roomsService.getAvailableRooms(
+          checkIn,
+          checkOut,
+          1
+        );
+
+      setAvailableRooms(roomsAvailable.data || []);
+      setHasSearched(true);
     } catch (error) {
-      console.error('Error checking availability:', error);
+      console.error(
+        'Error checking availability:',
+        error
+      );
+    } finally {
       setIsCheckingAvailability(false);
     }
   };
 
   const handleBookNow = (roomId) => {
-    localStorage.setItem('selectedDates', JSON.stringify({ checkIn, checkOut }));
+    localStorage.setItem(
+      'selectedDates',
+      JSON.stringify({
+        checkIn,
+        checkOut,
+      })
+    );
   };
 
   const displayRooms = availableRooms;
@@ -44,7 +59,11 @@ export default function Rooms() {
       {/* HEADER */}
       <div className={styles.header}>
         <h1>Our Rooms</h1>
-        <p>Choose your stay and check room availability instantly</p>
+
+        <p>
+          Choose your stay and check room
+          availability instantly
+        </p>
       </div>
 
       {/* SEARCH SECTION */}
@@ -53,34 +72,48 @@ export default function Rooms() {
 
         <div className={styles.searchForm}>
           <div className={styles.dateInputs}>
-            {/* CHECK IN */}
             <div className={styles.inputGroup}>
-              <label htmlFor="checkIn">Check-in Date</label>
+              <label htmlFor="checkIn">
+                Check-in Date
+              </label>
 
               <input
                 type="date"
                 id="checkIn"
                 value={checkIn}
-                min={new Date().toISOString().split('T')[0]}
-                onChange={(e) => setCheckIn(e.target.value)}
+                min={
+                  new Date()
+                    .toISOString()
+                    .split('T')[0]
+                }
+                onChange={(e) =>
+                  setCheckIn(e.target.value)
+                }
               />
             </div>
 
-            {/* CHECK OUT */}
             <div className={styles.inputGroup}>
-              <label htmlFor="checkOut">Check-out Date</label>
+              <label htmlFor="checkOut">
+                Check-out Date
+              </label>
 
               <input
                 type="date"
                 id="checkOut"
                 value={checkOut}
-                min={checkIn || new Date().toISOString().split('T')[0]}
-                onChange={(e) => setCheckOut(e.target.value)}
+                min={
+                  checkIn ||
+                  new Date()
+                    .toISOString()
+                    .split('T')[0]
+                }
+                onChange={(e) =>
+                  setCheckOut(e.target.value)
+                }
               />
             </div>
           </div>
 
-          {/* SEARCH BUTTON */}
           <button
             className={styles.searchButton}
             onClick={checkAvailability}
@@ -102,7 +135,10 @@ export default function Rooms() {
         <div className={styles.resultInfo}>
           <h3>
             {displayRooms.length} room
-            {displayRooms.length !== 1 ? 's' : ''} found
+            {displayRooms.length !== 1
+              ? 's'
+              : ''}{' '}
+            found
           </h3>
 
           <p>
@@ -113,10 +149,25 @@ export default function Rooms() {
 
       {/* ROOMS GRID */}
       <div className={styles.roomsGrid}>
-        {displayRooms.length === 0 ? (
+        {!hasSearched ? (
+          <div className={styles.emptyState}>
+            <h3>
+              Select dates to search rooms
+            </h3>
+
+            <p>
+              Choose your check-in and
+              check-out dates above.
+            </p>
+          </div>
+        ) : displayRooms.length === 0 ? (
           <div className={styles.emptyState}>
             <h3>No rooms available</h3>
-            <p>Please try another date range.</p>
+
+            <p>
+              Please try another date
+              range.
+            </p>
           </div>
         ) : (
           displayRooms.map((room) => {
@@ -127,11 +178,11 @@ export default function Rooms() {
               <div
                 key={room.id}
                 className={`${styles.roomCard} ${!isAvailable
-                    ? styles.roomUnavailable
-                    : ''
+                  ? styles.roomUnavailable
+                  : ''
                   }`}
               >
-                {/* STATUS BADGE */}
+                {/* STATUS */}
                 <div
                   className={
                     isAvailable
@@ -144,73 +195,180 @@ export default function Rooms() {
                     : room.status}
                 </div>
 
-                {/* ROOM IMAGE */}
+                {/* IMAGE */}
                 <div className={styles.roomImage}>
                   <Image
-                    src={`/images/${room.roomType.name.toLowerCase()}.jpg`}
-                    alt={room.roomType.name}
+                    src={
+                      room.imageUrls?.[0] ||
+                      '/images/room-placeholder.jpg'
+                    }
+                    alt={`${room.roomType.name} Room`}
                     fill
-                    style={{ objectFit: 'cover' }}
+                    className={styles.image}
                   />
+
+                  <div
+                    className={
+                      styles.imageOverlay
+                    }
+                  >
+                    <span
+                      className={
+                        styles.roomTypeBadge
+                      }
+                    >
+                      {room.roomType.name}
+                    </span>
+                  </div>
+
+                  {room.imageUrls
+                    ?.length > 1 && (
+                      <div
+                        className={
+                          styles.imageCount
+                        }
+                      >
+                        📷{' '}
+                        {
+                          room.imageUrls
+                            .length
+                        }
+                      </div>
+                    )}
                 </div>
 
-                {/* ROOM CONTENT */}
-                <div className={styles.roomContent}>
-                  {/* HEADER */}
-                  <div className={styles.roomHeader}>
+                {/* CONTENT */}
+                <div
+                  className={
+                    styles.roomContent
+                  }
+                >
+                  <div
+                    className={
+                      styles.roomHeader
+                    }
+                  >
                     <div>
                       <h3>
-                        {room.roomType.name} Room
+                        {
+                          room.roomType
+                            .name
+                        }{' '}
+                        Room
                       </h3>
 
-                      <p className={styles.roomNumber}>
-                        Room #{room.roomNumber}
+                      <p
+                        className={
+                          styles.roomNumber
+                        }
+                      >
+                        Room #
+                        {
+                          room.roomNumber
+                        }
                       </p>
                     </div>
 
-                    <div className={styles.priceBox}>
-                      <span className={styles.price}>
-                        ${room.roomType.price}
+                    <div
+                      className={
+                        styles.priceBox
+                      }
+                    >
+                      <span
+                        className={
+                          styles.price
+                        }
+                      >
+                        $
+                        {
+                          room
+                            .roomType
+                            .price
+                        }
                       </span>
 
-                      <small>/night</small>
+                      <small>
+                        /night
+                      </small>
                     </div>
                   </div>
 
                   {/* CAPACITY */}
-                  <div className={styles.capacity}>
+                  <div
+                    className={
+                      styles.capacity
+                    }
+                  >
                     👥 Max{' '}
-                    {room.roomType.maxCapacity} guests
+                    {
+                      room.roomType
+                        .maxCapacity
+                    }{' '}
+                    guests
                   </div>
 
                   {/* AMENITIES */}
-                  <ul className={styles.features}>
-                    {room.amenities.length > 0 ? (
-                      room.amenities.map(
-                        (item, index) => (
-                          <li key={index}>{item}</li>
+                  <div
+                    className={
+                      styles.amenities
+                    }
+                  >
+                    {room.amenities
+                      ?.length > 0 ? (
+                      room.amenities
+                        .slice(0, 4)
+                        .map(
+                          (
+                            item,
+                            index
+                          ) => (
+                            <span
+                              key={
+                                index
+                              }
+                              className={
+                                styles.amenityBadge
+                              }
+                            >
+                              {item}
+                            </span>
+                          )
                         )
-                      )
                     ) : (
-                      <li>Basic amenities included</li>
+                      <span
+                        className={
+                          styles.amenityBadge
+                        }
+                      >
+                        Basic
+                        Amenities
+                      </span>
                     )}
-                  </ul>
+                  </div>
 
                   {/* ACTION */}
                   {isAvailable ? (
-                    <Link href={`/rooms/${room.id}`}>
+                    <Link
+                      href={`/rooms/${room.id}`}
+                    >
                       <button
-                        className={styles.bookButton}
+                        className={
+                          styles.bookButton
+                        }
                         onClick={() =>
-                          handleBookNow(room.id)
+                          handleBookNow(
+                            room.id
+                          )
                         }
                       >
-                        Book Now
+                        View Details
                       </button>
                     </Link>
                   ) : (
                     <button
-                      className={styles.unavailableButton}
+                      className={
+                        styles.unavailableButton
+                      }
                       disabled
                     >
                       Unavailable
